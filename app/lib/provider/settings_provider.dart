@@ -66,6 +66,8 @@ class SettingsService extends PureNotifier<SettingsState> {
     receivePin: _persistence.getReceivePin(),
     autoFinish: _persistence.isAutoFinish(),
     minimizeToTray: _persistence.isMinimizeToTray(),
+    backgroundMode: _persistence.isBackgroundMode(),
+    openOnReceive: _persistence.isOpenOnReceive(),
     https: _persistence.isHttps(),
     sendMode: _persistence.getSendMode(),
     saveWindowPlacement: _persistence.getSaveWindowPlacement(),
@@ -227,6 +229,20 @@ class SettingsService extends PureNotifier<SettingsState> {
     await _persistence.setMinimizeToTray(minimizeToTray);
     state = state.copyWith(
       minimizeToTray: minimizeToTray,
+    );
+  }
+
+  Future<void> setBackgroundMode(bool backgroundMode) async {
+    await _persistence.setBackgroundMode(backgroundMode);
+    state = state.copyWith(
+      backgroundMode: backgroundMode,
+    );
+  }
+
+  Future<void> setOpenOnReceive(bool openOnReceive) async {
+    await _persistence.setOpenOnReceive(openOnReceive);
+    state = state.copyWith(
+      openOnReceive: openOnReceive,
     );
   }
 

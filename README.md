@@ -22,6 +22,11 @@
 
 LocalSend is a free, open-source app that allows you to securely share files and messages with nearby devices over your local network without needing an internet connection.
 
+> [!NOTE]
+> This is a fork of [localsend/localsend](https://github.com/localsend/localsend) that adds two Android features, see [Fork features](#fork-features).
+> APKs are on the [releases page](https://github.com/itszux/localsend/releases).
+
+- [Fork features](#fork-features)
 - [About](#about)
 - [Sponsors](#sponsors)
 - [Screenshots](#screenshots)
@@ -40,6 +45,34 @@ LocalSend is a free, open-source app that allows you to securely share files and
   - [macOS](#macos)
   - [Windows](#windows)
   - [Linux](#linux)
+
+## Fork features
+
+Both are Android only and off by default. Find them in **Settings → General**.
+
+### Stay discoverable in the background
+
+Other devices can find your phone and send files to it while LocalSend is closed, including after it was swiped away from the recent apps and while the screen is off. This works like the desktop app sitting in the system tray.
+
+- A foreground service keeps the app running and shows a quiet "Ready to receive files" notification.
+- A multicast lock lets discovery messages through while the screen is off.
+- The app keeps running after being swiped away, so the server and discovery stay up.
+
+Turn on **Quick Save** (or **Quick Save for "Favorites"** with the sender marked as a favorite), otherwise a transfer waits for you to tap Accept.
+Some phones (Samsung, Xiaomi, Huawei, ...) still stop background apps: set LocalSend's battery usage to **Unrestricted**.
+After a reboot, open LocalSend once to start it again.
+
+### Open the app when receiving files
+
+LocalSend comes to the front when a file request arrives: the Accept prompt for senders that need approval, or the progress screen for Quick Save transfers.
+
+Android only lets apps open themselves from the background with the **Appear on top** permission. Turning the option on opens that screen.
+When the phone is locked, the app opens behind the lock screen and is waiting when you unlock.
+
+### Installing
+
+Uninstall the official LocalSend first: these APKs are signed with a different key, so Android will not install them over it.
+Most phones need the `arm64v8` APK.
 
 ## About
 

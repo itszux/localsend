@@ -534,6 +534,42 @@ class MockPersistenceService extends _i1.Mock implements _i4.PersistenceService 
           as _i5.Future<void>);
 
   @override
+  bool isBackgroundMode() =>
+      (super.noSuchMethod(
+            Invocation.method(#isBackgroundMode, []),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
+  _i5.Future<void> setBackgroundMode(bool? backgroundMode) =>
+      (super.noSuchMethod(
+            Invocation.method(#setBackgroundMode, [backgroundMode]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
+  bool isOpenOnReceive() =>
+      (super.noSuchMethod(
+            Invocation.method(#isOpenOnReceive, []),
+            returnValue: false,
+            returnValueForMissingStub: false,
+          )
+          as bool);
+
+  @override
+  _i5.Future<void> setOpenOnReceive(bool? openOnReceive) =>
+      (super.noSuchMethod(
+            Invocation.method(#setOpenOnReceive, [openOnReceive]),
+            returnValue: _i5.Future<void>.value(),
+            returnValueForMissingStub: _i5.Future<void>.value(),
+          )
+          as _i5.Future<void>);
+
+  @override
   bool isHttps() =>
       (super.noSuchMethod(
             Invocation.method(#isHttps, []),

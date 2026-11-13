@@ -23,6 +23,7 @@ import 'package:localsend_app/provider/selection/selected_receiving_files_provid
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
 import 'package:localsend_app/util/native/directories.dart';
+import 'package:localsend_app/util/native/open_on_receive.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/native/tray_helper.dart';
 import 'package:localsend_app/widget/dialogs/open_file_dialog.dart';
@@ -125,6 +126,11 @@ class ReceiveController {
           sessionId: sessionId,
           statuses: {for (final file in files.values) file.id: FileStatus.queue},
         );
+
+    if (settings.openOnReceive) {
+      // Before the routes are pushed, so that both the accept prompt and the progress of a quick save show up.
+      await openAppOnReceive();
+    }
 
     bool quickSave = settings.quickSave && server.getState().session?.message == null;
     final quickSaveFromFavorites = settings.quickSaveFromFavorites && server.getState().session?.message == null;

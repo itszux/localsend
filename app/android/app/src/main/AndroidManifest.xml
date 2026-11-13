@@ -22,6 +22,16 @@
          FOREGROUND_SERVICE and POST_NOTIFICATIONS come from the flutter_foreground_task manifest. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
+    <!-- localsend: background mode keeps the server reachable while the app is closed.
+         connectedDevice has no runtime limit (unlike dataSync) and is allowed via CHANGE_WIFI_MULTICAST_STATE,
+         which is also needed for the multicast lock that lets discovery packets through while the screen is off. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
+    <!-- localsend: "open app when receiving files" - Android only lets an app bring itself to the front
+         from the background if the user granted "Appear on top". -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
     <!-- Android TV -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -88,11 +98,11 @@
             </intent-filter>
         </service>
 
-        <!-- Foreground service showing the receive progress.
+        <!-- Foreground service showing the transfer progress, or keeping the app reachable in background mode.
              Warning: the name is defined by flutter_foreground_task and must not be changed. -->
         <service
             android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
-            android:foregroundServiceType="dataSync"
+            android:foregroundServiceType="dataSync|connectedDevice"
             android:exported="false" />
 
         <!-- Don't delete the meta-data below.

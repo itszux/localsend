@@ -48,10 +48,14 @@ class ForegroundService {
   ///
   /// [channelName] is shown in the Android notification settings and is only read the first time
   /// the service starts, because the notification channel is created once per app installation.
+  ///
+  /// [serviceTypes] must be declared on the service in the AndroidManifest. `dataSync` is limited to
+  /// a few hours per day on Android 15+, so a long running service should use another type.
   static void start({
     required String channelName,
     required String title,
     required String text,
+    List<ForegroundServiceTypes> serviceTypes = const [ForegroundServiceTypes.dataSync],
   }) {
     if (!_isSupported) {
       return;
@@ -70,7 +74,7 @@ class ForegroundService {
 
       final result = await FlutterForegroundTask.startService(
         serviceId: _serviceId,
-        serviceTypes: const [ForegroundServiceTypes.dataSync],
+        serviceTypes: serviceTypes,
         notificationTitle: title,
         notificationText: text,
       );
@@ -87,18 +91,18 @@ class ForegroundService {
   }
 
   /// Updates the notification.
-  /// Throttled to [_updateInterval]; calls before the service is running are dropped.
+  /// Throttled to [_updateInterval] unless [force] is set; calls before the service is running are dropped.
   ///
   /// The [title] can change while the service runs, because what the service is keeping alive
   /// may change without it ever stopping.
-  static void updateNotification({required String title, required String text}) {
+  static void updateNotification({required String title, required String text, bool force = false}) {
     if (!_isSupported) {
       return;
     }
 
     final now = DateTime.now();
     final lastUpdate = _lastUpdate;
-    if (lastUpdate != null && now.difference(lastUpdate) < _updateInterval) {
+    if (!force && lastUpdate != null && now.difference(lastUpdate) < _updateInterval) {
       return;
     }
     _lastUpdate = now;

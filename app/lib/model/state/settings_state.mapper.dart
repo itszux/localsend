@@ -110,6 +110,16 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     'minimizeToTray',
     _$minimizeToTray,
   );
+  static bool _$backgroundMode(SettingsState v) => v.backgroundMode;
+  static const Field<SettingsState, bool> _f$backgroundMode = Field(
+    'backgroundMode',
+    _$backgroundMode,
+  );
+  static bool _$openOnReceive(SettingsState v) => v.openOnReceive;
+  static const Field<SettingsState, bool> _f$openOnReceive = Field(
+    'openOnReceive',
+    _$openOnReceive,
+  );
   static bool _$https(SettingsState v) => v.https;
   static const Field<SettingsState, bool> _f$https = Field('https', _$https);
   static SendMode _$sendMode(SettingsState v) => v.sendMode;
@@ -195,6 +205,8 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
     #receivePin: _f$receivePin,
     #autoFinish: _f$autoFinish,
     #minimizeToTray: _f$minimizeToTray,
+    #backgroundMode: _f$backgroundMode,
+    #openOnReceive: _f$openOnReceive,
     #https: _f$https,
     #sendMode: _f$sendMode,
     #saveWindowPlacement: _f$saveWindowPlacement,
@@ -230,6 +242,8 @@ class SettingsStateMapper extends ClassMapperBase<SettingsState> {
       receivePin: data.dec(_f$receivePin),
       autoFinish: data.dec(_f$autoFinish),
       minimizeToTray: data.dec(_f$minimizeToTray),
+      backgroundMode: data.dec(_f$backgroundMode),
+      openOnReceive: data.dec(_f$openOnReceive),
       https: data.dec(_f$https),
       sendMode: data.dec(_f$sendMode),
       saveWindowPlacement: data.dec(_f$saveWindowPlacement),
@@ -331,6 +345,8 @@ abstract class SettingsStateCopyWith<$R, $In extends SettingsState, $Out>
     String? receivePin,
     bool? autoFinish,
     bool? minimizeToTray,
+    bool? backgroundMode,
+    bool? openOnReceive,
     bool? https,
     SendMode? sendMode,
     bool? saveWindowPlacement,
@@ -394,6 +410,8 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     Object? receivePin = $none,
     bool? autoFinish,
     bool? minimizeToTray,
+    bool? backgroundMode,
+    bool? openOnReceive,
     bool? https,
     SendMode? sendMode,
     bool? saveWindowPlacement,
@@ -428,6 +446,8 @@ class _SettingsStateCopyWithImpl<$R, $Out>
       if (receivePin != $none) #receivePin: receivePin,
       if (autoFinish != null) #autoFinish: autoFinish,
       if (minimizeToTray != null) #minimizeToTray: minimizeToTray,
+      if (backgroundMode != null) #backgroundMode: backgroundMode,
+      if (openOnReceive != null) #openOnReceive: openOnReceive,
       if (https != null) #https: https,
       if (sendMode != null) #sendMode: sendMode,
       if (saveWindowPlacement != null)
@@ -469,6 +489,8 @@ class _SettingsStateCopyWithImpl<$R, $Out>
     receivePin: data.get(#receivePin, or: $value.receivePin),
     autoFinish: data.get(#autoFinish, or: $value.autoFinish),
     minimizeToTray: data.get(#minimizeToTray, or: $value.minimizeToTray),
+    backgroundMode: data.get(#backgroundMode, or: $value.backgroundMode),
+    openOnReceive: data.get(#openOnReceive, or: $value.openOnReceive),
     https: data.get(#https, or: $value.https),
     sendMode: data.get(#sendMode, or: $value.sendMode),
     saveWindowPlacement: data.get(

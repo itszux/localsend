@@ -9,6 +9,7 @@ import 'package:localsend_app/pages/home_page.dart';
 import 'package:localsend_app/provider/local_ip_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
+import 'package:localsend_app/util/native/background_mode.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/ui/dynamic_colors.dart';
 import 'package:localsend_app/widget/watcher/life_cycle_watcher.dart';
@@ -74,6 +75,10 @@ class LocalSendApp extends StatelessWidget {
                 }
                 break;
               case AppLifecycleState.detached:
+                if (isBackgroundModeActive) {
+                  // The engine outlives the activity, so the server and discovery must keep running.
+                  break;
+                }
                 // The main isolate is only exited when all child isolates are exited.
                 // https://github.com/localsend/localsend/issues/1568
                 ref.redux(parentIsolateProvider).dispatch(IsolateDisposeAction());

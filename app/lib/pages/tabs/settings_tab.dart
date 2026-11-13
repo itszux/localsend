@@ -14,8 +14,10 @@ import 'package:localsend_app/provider/version_provider.dart';
 import 'package:localsend_app/util/alias_generator.dart';
 import 'package:localsend_app/util/device_type_ext.dart';
 import 'package:localsend_app/util/i18n.dart';
+import 'package:localsend_app/util/native/background_mode.dart';
 import 'package:localsend_app/util/native/device_info_helper.dart';
 import 'package:localsend_app/util/native/macos_channel.dart';
+import 'package:localsend_app/util/native/open_on_receive.dart';
 import 'package:localsend_app/util/native/pick_directory_path.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/widget/custom_dropdown_button.dart';
@@ -87,6 +89,26 @@ class SettingsTab extends StatelessWidget {
                   buttonLabel: vm.settings.locale?.getLocaleName() ?? t.settingsTab.general.languageOptions.system,
                   onTap: () => vm.onTapLanguage(context),
                 ),
+                if (checkPlatform([TargetPlatform.android]))
+                  _BooleanEntry(
+                    label: t.settingsTab.general.backgroundMode,
+                    value: vm.settings.backgroundMode,
+                    onChanged: (b) async {
+                      await ref.notifier(settingsProvider).setBackgroundMode(b);
+                      await applyBackgroundMode(b);
+                    },
+                  ),
+                if (checkPlatform([TargetPlatform.android]))
+                  _BooleanEntry(
+                    label: t.settingsTab.general.openOnReceive,
+                    value: vm.settings.openOnReceive,
+                    onChanged: (b) async {
+                      await ref.notifier(settingsProvider).setOpenOnReceive(b);
+                      if (b) {
+                        await ensureOpenOnReceivePermission();
+                      }
+                    },
+                  ),
                 if (checkPlatformIsDesktop()) ...[
                   _BooleanEntry(
                     label: t.settingsTab.general.alwaysOnTop,

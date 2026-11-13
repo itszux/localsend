@@ -1,3 +1,4 @@
+import 'package:flutter_foreground_task/flutter_foreground_task.dart' show ForegroundServiceTypes;
 import 'package:localsend_isolates/util/file_size_helper.dart';
 import 'package:localsend_isolates/util/file_speed_helper.dart';
 import 'package:localsend_isolates/util/foreground_service.dart';
@@ -19,6 +20,10 @@ class TransferNotification {
   static final _transfers = <String, _Transfer>{};
   static NotificationStrings? _strings;
 
+  /// The idle notification while background mode keeps the service running without any transfer.
+  /// Null while background mode is off.
+  static _IdleNotification? _idle;
+
   /// Injects the translated strings. Must be called before the first transfer starts.
   /// The locale is pinned on app start, so one call is enough.
   static void init(NotificationStrings strings) {
@@ -33,6 +38,35 @@ class TransferNotification {
   /// running transfer reports progress continuously.
   static bool get shouldUpdate => ForegroundService.shouldUpdateNotification;
 
+  /// Background mode (Android): keeps the service, and with it the app process, running while there is
+  /// no transfer, so that other devices can still discover this one and send to it.
+  ///
+  /// Enabling must happen while the app is in the foreground: Android 12+ rejects starting a
+  /// foreground service from the background.
+  static void setBackgroundMode({required bool enabled, required String title, required String text}) {
+    if (!enabled) {
+      _idle = null;
+      if (_transfers.isEmpty) {
+        ForegroundService.stop();
+      }
+      return;
+    }
+
+    _idle = _IdleNotification(title: title, text: text);
+    if (_transfers.isEmpty) {
+      ForegroundService.start(
+        channelName: _requiredStrings.titleReceiving,
+        title: title,
+        text: text,
+        // dataSync would be stopped by the system after a few hours.
+        serviceTypes: const [ForegroundServiceTypes.connectedDevice],
+      );
+      // Applies the new text if the service was already running.
+      ForegroundService.updateNotification(title: title, text: text, force: true);
+    }
+    // Otherwise a transfer owns the notification, and [stop] switches to the idle text afterwards.
+  }
+
   /// Registers a transfer, starting the service if it is the first one.
   ///
   /// Must be called while the app is in the foreground: Android 12+ rejects starting a foreground
@@ -46,11 +80,16 @@ class TransferNotification {
     _transfers[sessionId] = _Transfer(receiving: receiving);
 
     if (isFirst) {
+      // No-op if background mode is already running the service.
       ForegroundService.start(
         channelName: _requiredStrings.titleReceiving,
         title: _title(),
         text: _text(),
       );
+      if (_idle != null) {
+        // Replace the idle text right away instead of waiting for the first progress update.
+        ForegroundService.updateNotification(title: _title(), text: _text(), force: true);
+      }
     }
   }
 
@@ -81,7 +120,10 @@ class TransferNotification {
       return;
     }
 
-    if (_transfers.isEmpty) {
+    final idle = _idle;
+    if (_transfers.isEmpty && idle != null) {
+      ForegroundService.updateNotification(title: idle.title, text: idle.text, force: true);
+    } else if (_transfers.isEmpty) {
       ForegroundService.stop();
     } else {
       ForegroundService.updateNotification(title: _title(), text: _text());
@@ -148,6 +190,13 @@ class TransferNotification {
 
     return text.toString();
   }
+}
+
+class _IdleNotification {
+  final String title;
+  final String text;
+
+  _IdleNotification({required this.title, required this.text});
 }
 
 class _Transfer {

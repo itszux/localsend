@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.database.Cursor
 import android.media.MediaScannerConnection
 import android.net.Uri
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
@@ -45,7 +46,6 @@ class MainActivity : FlutterActivity() {
     /// Hold such intents back until Dart reports readiness ("shareIntentReady"), then
     /// replay them through the regular plugin path.
     private val pendingShareIntents = mutableListOf<Intent>()
-    private var shareIntentReady = false
 
     override fun onNewIntent(intent: Intent) {
         if (!shareIntentReady && (intent.action == Intent.ACTION_SEND || intent.action == Intent.ACTION_SEND_MULTIPLE)) {
@@ -67,12 +67,77 @@ class MainActivity : FlutterActivity() {
     // Overriding the static methods we need from the Java class, as described
     // in the documentation of `FlutterActivity.NewEngineIntentBuilder`
     companion object {
+        /// Lives as long as the Dart side does, which may outlive this activity (see [keepEngineAlive]).
+        private var shareIntentReady = false
+
+        /// Background mode: the Dart side (HTTP server, discovery) keeps running after the activity
+        /// is destroyed, e.g. when the app is swiped away from the recents screen. The foreground
+        /// service keeps the process alive; this keeps the engine alive within it.
+        private var keepEngineAlive = false
+
+        /// The engine of a destroyed activity, handed to the next one instead of starting a new engine.
+        private var retainedEngine: FlutterEngine? = null
+
+        /// Android drops incoming multicast packets (discovery announcements) while the screen is off
+        /// unless a multicast lock is held.
+        private var multicastLock: WifiManager.MulticastLock? = null
+
         fun withNewEngine(): NewEngineIntentBuilder {
             return NewEngineIntentBuilder(MainActivity::class.java)
         }
 
         fun createDefaultIntent(launchContext: Context): Intent {
             return withNewEngine().build(launchContext)
+        }
+    }
+
+    override fun provideFlutterEngine(context: Context): FlutterEngine? {
+        val engine = retainedEngine
+        retainedEngine = null
+        if (engine == null) {
+            // A new engine means a new Dart isolate that has not reported share intent readiness yet.
+            shareIntentReady = false
+        }
+        return engine
+    }
+
+    override fun shouldDestroyEngineWithHost(): Boolean {
+        return !keepEngineAlive
+    }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        super.cleanUpFlutterEngine(flutterEngine)
+        if (keepEngineAlive) {
+            retainedEngine = flutterEngine
+        }
+    }
+
+    /// Shows the app, also if its activity was destroyed while background mode kept the engine alive.
+    /// From the background, Android only allows this with the "Appear on top" permission.
+    private fun bringToFront(): Boolean {
+        val context = applicationContext
+        val intent = Intent(context, MainActivity::class.java).apply {
+            action = Intent.ACTION_MAIN
+            addCategory(Intent.CATEGORY_LAUNCHER)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+        }
+        context.startActivity(intent)
+        return Settings.canDrawOverlays(context)
+    }
+
+    private fun setBackgroundMode(enabled: Boolean) {
+        keepEngineAlive = enabled
+        if (enabled) {
+            if (multicastLock == null) {
+                val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                multicastLock = wifiManager.createMulticastLock("localsend_discovery").apply {
+                    setReferenceCounted(false)
+                    acquire()
+                }
+            }
+        } else {
+            multicastLock?.release()
+            multicastLock = null
         }
     }
 
@@ -116,6 +181,26 @@ class MainActivity : FlutterActivity() {
                 "openGallery" -> {
                     openGallery()
                     result.success(null)
+                }
+
+                "setBackgroundMode" -> {
+                    setBackgroundMode(call.argument<Boolean>("enabled")!!)
+                    result.success(null)
+                }
+
+                "canBringToFront" -> {
+                    result.success(Settings.canDrawOverlays(applicationContext))
+                }
+
+                "requestBringToFrontPermission" -> {
+                    val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(intent)
+                    result.success(null)
+                }
+
+                "bringToFront" -> {
+                    result.success(bringToFront())
                 }
 
                 "shareIntentReady" -> {

@@ -83,6 +83,27 @@ Future<void> flushPendingShareIntentsAndroid() async {
   }
 }
 
+/// Keeps the Flutter engine alive when the activity is destroyed and holds a multicast lock,
+/// see `MainActivity.setBackgroundMode`.
+Future<void> setBackgroundModeAndroid(bool enabled) async {
+  await _methodChannel.invokeMethod('setBackgroundMode', {'enabled': enabled});
+}
+
+/// Whether the app may bring itself to the front from the background ("Appear on top").
+Future<bool> canBringToFrontAndroid() async {
+  return await _methodChannel.invokeMethod<bool>('canBringToFront') ?? false;
+}
+
+/// Opens the system screen to grant "Appear on top".
+Future<void> requestBringToFrontPermissionAndroid() async {
+  await _methodChannel.invokeMethod('requestBringToFrontPermission');
+}
+
+/// Brings the app to the front. Returns false if it was likely blocked for missing "Appear on top".
+Future<bool> bringToFrontAndroid() async {
+  return await _methodChannel.invokeMethod<bool>('bringToFront') ?? false;
+}
+
 Future<void> openGallery() async {
   _logger.info('Opening gallery');
   await _methodChannel.invokeMethod('openGallery');

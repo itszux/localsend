@@ -28,6 +28,7 @@ import 'package:localsend_app/provider/version_provider.dart';
 import 'package:localsend_app/provider/window_dimensions_provider.dart';
 import 'package:localsend_app/util/i18n.dart';
 import 'package:localsend_app/util/native/autostart_helper.dart';
+import 'package:localsend_app/util/native/background_mode.dart';
 import 'package:localsend_app/util/native/cache_helper.dart';
 import 'package:localsend_app/util/native/channel/android_channel.dart';
 import 'package:localsend_app/util/native/context_menu_helper.dart';
@@ -217,6 +218,10 @@ Future<void> postInit(BuildContext context, Ref ref, bool appStart) async {
       if (context.mounted) {
         await context.pushBottomSheet(() => const LocalNetworkDialog());
       }
+    }
+
+    if (ref.read(settingsProvider).backgroundMode) {
+      await applyBackgroundMode(true);
     }
   }
 
